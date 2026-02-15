@@ -1,7 +1,7 @@
 # Stat Integra
 ### Integer Statistics Calculator
 
-- A python program that allows users to input a sequence of positive integers and instantly compute key statistical measures. 
+- A python program that allows users to input a sequence of positive integers and instantly compute key statistical measures. Includes algorithmic sorting and fundamental computation logic for mean and standard deviation.
 
 ## Author Info
 
