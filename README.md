@@ -19,6 +19,7 @@ These projects can be thought of as a creative extension to my previous works, l
 Ethan LLM Works is a self-directed, independent passion of mine I pursue in free time as a means of exploring LLM product development, rapid prototyping, and interactive computational design in a highly intuitive and engaging manner.
 
 ### Sample Prompt Engineering
+**Core Implementation**
 
 1. “Turn this Python statistics program into a simple html website.”
 2. “Improve the UI of this statistics calculator website to show a math-related background.”
