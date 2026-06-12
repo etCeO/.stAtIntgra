@@ -1,415 +1,1382 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Integer Statistics Calculator</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatIntegra — Mathematical Analytics Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ──────────────────────────────────────────────── */
+:root {
+  --bg:        #07090f;
+  --surface:   #0e1220;
+  --surface2:  #141828;
+  --border:    rgba(255,255,255,0.07);
+  --teal:      #00d4b4;
+  --teal-dim:  rgba(0,212,180,0.15);
+  --teal-glow: rgba(0,212,180,0.25);
+  --amber:     #f59e0b;
+  --amber-dim: rgba(245,158,11,0.15);
+  --lavender:  #a78bfa;
+  --lav-dim:   rgba(167,139,250,0.15);
+  --rose:      #fb7185;
+  --text:      #e8ecf4;
+  --text-muted:#8896b0;
+  --text-dim:  #4a5568;
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'Space Grotesk', sans-serif;
+  --body:      'Inter', sans-serif;
+  --r:         12px;
+  --r-sm:      8px;
+}
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
+/* ─── RESET ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            padding: 30px;
-            text-align: center;
+/* ─── GRID BG ─────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,180,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,180,0.03) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+  z-index: 0;
+}
 
-            /* Math-style background */
-            background-color: #f8fafc;
-            background-image:
-                linear-gradient(#e3e7eb 1px, transparent 1px),
-                linear-gradient(90deg, #e3e7eb 1px, transparent 1px);
-            background-size: 40px 40px;
-        }    
+/* ─── HEADER ──────────────────────────────────────────────── */
+.header {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 36px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7,9,15,0.9);
+  backdrop-filter: blur(12px);
+}
+.logo {
+  display: flex; align-items: center; gap: 12px;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--teal), var(--lavender));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: var(--bg);
+  font-family: var(--mono);
+}
+.logo-text {
+  font-family: var(--sans);
+  font-size: 18px; font-weight: 600;
+  letter-spacing: -0.3px;
+}
+.logo-text span { color: var(--teal); }
+.header-meta {
+  font-family: var(--mono);
+  font-size: 11px; color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.header-status {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--text-muted);
+}
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 8px var(--teal);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+}
 
-        h1, h2 {
-            color: #333;
-            font-weight: 600;
-        }
+/* ─── LAYOUT ──────────────────────────────────────────────── */
+.layout {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  min-height: calc(100vh - 65px);
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+}
 
-        .box {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 600px;
-            margin: 0 auto 30px auto;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            text-align: left;
-        }
+/* ─── LEFT PANEL ──────────────────────────────────────────── */
+.panel-left {
+  border-right: 1px solid var(--border);
+  padding: 28px 24px;
+  display: flex; flex-direction: column; gap: 20px;
+  background: var(--surface);
+}
+.panel-label {
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.section-title {
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
 
-        label {
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
+/* Input Area */
+.input-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+}
+.input-row {
+  display: flex; gap: 8px;
+}
+.num-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 20px; font-weight: 500;
+  color: var(--teal);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.num-input::placeholder { color: var(--text-dim); font-size: 14px; }
+.num-input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-dim);
+}
+.btn-add {
+  background: var(--teal);
+  color: var(--bg);
+  border: none; cursor: pointer;
+  border-radius: var(--r-sm);
+  padding: 12px 20px;
+  font-family: var(--sans);
+  font-size: 14px; font-weight: 600;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-add:hover { background: #00eeca; transform: translateY(-1px); }
+.btn-add:active { transform: translateY(0); }
 
-        input,
-        textarea,
-        button {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            font-family: inherit; /* ✅ consistent font */
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            margin-bottom: 15px;
-        }
+.input-hint {
+  font-size: 11px; color: var(--text-dim);
+  margin-top: 10px; line-height: 1.5;
+}
+.input-hint strong { color: var(--rose); }
 
-        textarea {
-            resize: vertical;
-        }
+.btn-finish {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--teal);
+  color: var(--teal);
+  border-radius: var(--r-sm);
+  padding: 11px;
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+.btn-finish:hover { background: var(--teal-dim); }
+.btn-finish:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        button {
-            background-color: #0077cc;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-        }
+.btn-reset {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--r-sm);
+  padding: 9px;
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-reset:hover { border-color: var(--rose); color: var(--rose); }
 
-        button:hover {
-            background-color: #005fa3;
-        }
+/* Dataset Queue */
+.queue-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 20px;
+}
+.queue-grid {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  max-height: 120px; overflow-y: auto;
+  margin-top: 8px;
+}
+.queue-tag {
+  background: var(--teal-dim);
+  border: 1px solid rgba(0,212,180,0.2);
+  color: var(--teal);
+  font-family: var(--mono);
+  font-size: 12px; font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  animation: tagIn 0.2s ease;
+}
+@keyframes tagIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.queue-empty {
+  color: var(--text-dim); font-size: 12px;
+  font-family: var(--mono);
+}
+.queue-count {
+  font-family: var(--mono);
+  font-size: 11px; color: var(--teal);
+  margin-top: 8px;
+}
 
-        .output {
-            margin-top: 15px;
-            font-weight: 500;
-            font-family: inherit; /* ✅ */
-        }
+/* Presets */
+.presets-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 20px;
+}
+.preset-list {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-top: 8px;
+}
+.preset-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 11px; cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.preset-btn:hover { border-color: var(--lavender); color: var(--lavender); background: var(--lav-dim); }
+.preset-tag { font-size: 10px; color: var(--text-dim); }
 
-        .table-container {
-            overflow-x: auto;
-            margin-top: 15px;
-        }
+/* Feedback */
+.feedback-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 20px;
+}
+.feedback-card input,
+.feedback-card textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  font-family: var(--body);
+  font-size: 12px; color: var(--text);
+  outline: none; margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+.feedback-card input:focus,
+.feedback-card textarea:focus { border-color: var(--teal); }
+.feedback-card textarea { resize: vertical; min-height: 70px; }
+.feedback-card label { font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+.btn-send {
+  width: 100%;
+  background: var(--lavender);
+  color: var(--bg);
+  border: none; cursor: pointer;
+  border-radius: var(--r-sm);
+  padding: 10px;
+  font-family: var(--sans);
+  font-size: 12px; font-weight: 600;
+  transition: all 0.15s;
+}
+.btn-send:hover { background: #c4b5fd; }
 
-        table {
-            border-collapse: collapse;
-            margin: 0 auto;
-            font-family: inherit; /* ✅ */
-        }
+/* ─── RIGHT PANEL ─────────────────────────────────────────── */
+.panel-right {
+  padding: 28px 32px;
+  display: flex; flex-direction: column; gap: 24px;
+  overflow-y: auto;
+}
 
-        td {
-            border: 1px solid #ccc;
-            padding: 10px 14px;
-            min-width: 40px;
-            text-align: center;
-            font-weight: 500;
-            background-color: #f9fafb;
-        }
+/* Empty state */
+.empty-state {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px;
+  min-height: 400px;
+}
+.empty-graphic {
+  width: 80px; height: 80px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.empty-graphic::before {
+  content: '';
+  position: absolute;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  animation: spin 8s linear infinite;
+  clip-path: inset(0 50% 0 0);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-sigma {
+  font-family: var(--sans); font-size: 32px; font-weight: 300;
+  color: var(--text-dim);
+}
+.empty-text { text-align: center; color: var(--text-muted); font-size: 14px; }
+.empty-text strong { color: var(--teal); font-weight: 500; }
 
-        .stat {
-            margin-top: 12px;
-            font-weight: 500;
-        }
-        
-        /* --- Visualization Styles --- */
+/* Results container */
+.results { display: flex; flex-direction: column; gap: 20px; }
 
-        .plot {
-            margin-top: 10px;
-            padding: 10px;
-        }
+/* ─── CONSTELLATION / SORTED VIZ ─────────────────────────── */
+.constellation-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+}
+.constellation-canvas {
+  width: 100%; height: 90px;
+  position: relative;
+  overflow: visible;
+}
 
-        .boxplot {
-            position: relative;
-            height: 60px;
-            margin-top: 10px;
-        }
+/* ─── STAT GRID ───────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+.stat-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+.stat-card.teal  { border-color: rgba(0,212,180,0.3); }
+.stat-card.amber { border-color: rgba(245,158,11,0.3); }
+.stat-card.lav   { border-color: rgba(167,139,250,0.3); }
+.stat-card.rose  { border-color: rgba(251,113,133,0.3); }
+.stat-label {
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 6px;
+}
+.stat-value {
+  font-family: var(--mono);
+  font-size: 22px; font-weight: 600;
+}
+.stat-card.teal  .stat-value { color: var(--teal); }
+.stat-card.amber .stat-value { color: var(--amber); }
+.stat-card.lav   .stat-value { color: var(--lavender); }
+.stat-card.rose  .stat-value { color: var(--rose); }
+.stat-sub {
+  font-size: 11px; color: var(--text-dim); margin-top: 4px;
+}
+.stat-tooltip {
+  font-size: 10px; color: var(--text-dim);
+  margin-top: 6px; line-height: 1.4;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+  font-family: var(--body);
+}
 
-        .boxplot-line {
-            position: absolute;
-            top: 30px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #555;
-        }
+/* ─── BOX PLOT ────────────────────────────────────────────── */
+.viz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px 24px;
+}
+.viz-title {
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.viz-badge {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 10px; color: var(--text-dim);
+  padding: 2px 8px; border-radius: 4px;
+}
 
-        .boxplot-box {
-            position: absolute;
-            top: 20px;
-            height: 20px;
-            background: #cfe8ff;
-            border: 2px solid #0077cc;
-        }
+/* ─── HISTOGRAM ───────────────────────────────────────────── */
+.histogram-wrap {
+  display: flex; align-items: flex-end; gap: 3px;
+  height: 80px; margin-top: 8px;
+}
+.hist-bar-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+}
+.hist-bar {
+  width: 100%;
+  background: linear-gradient(180deg, var(--teal), rgba(0,212,180,0.4));
+  border-radius: 3px 3px 0 0;
+  transition: height 0.4s cubic-bezier(.34,1.56,.64,1);
+  min-height: 2px;
+  position: relative;
+}
+.hist-bar:hover::after {
+  content: attr(data-count);
+  position: absolute; top: -22px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--teal);
+  font-family: var(--mono); font-size: 10px;
+  padding: 2px 6px; border-radius: 4px;
+  white-space: nowrap;
+}
+.hist-label { font-family: var(--mono); font-size: 9px; color: var(--text-dim); }
 
-        .boxplot-marker {
-            position: absolute;
-            top: 15px;
-            width: 2px;
-            height: 30px;
-            background: #333;
-        }
+/* ─── BELL CURVE ──────────────────────────────────────────── */
+.bell-svg { width: 100%; height: 130px; display: block; }
 
-        .boxplot-label {
-            position: absolute;
-            top: 0;
-            transform: translateX(-50%);
-            font-size: 12px;
-        }
+/* ─── INSIGHTS ────────────────────────────────────────────── */
+.insights-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+@media (max-width: 700px) { .insights-grid { grid-template-columns: 1fr; } }
+.insight-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-size: 12px; line-height: 1.55;
+  color: var(--text-muted);
+}
+.insight-item .i-icon {
+  font-size: 14px; margin-bottom: 5px; display: block;
+}
+.insight-item strong { color: var(--teal); font-weight: 500; }
 
-        .bell-curve {
-            width: 100%;
-            height: 150px;
-        }        
-    </style>     
-    </head>
+/* ─── SORTING ─────────────────────────────────────────────── */
+.sort-tabs {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.sort-tab {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text-muted); cursor: pointer;
+  transition: all 0.15s;
+}
+.sort-tab.active { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+.sort-tab:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+.sort-vis {
+  display: flex; align-items: flex-end; gap: 4px;
+  height: 70px; margin-bottom: 12px;
+}
+.sort-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.15s, background 0.15s;
+  min-height: 4px;
+  background: rgba(0,212,180,0.5);
+}
+.sort-bar.comparing { background: var(--amber); }
+.sort-bar.swapping  { background: var(--rose); }
+.sort-bar.sorted    { background: var(--teal); }
+
+.sort-controls {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.sort-info {
+  font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+  margin-top: 10px;
+}
+.sort-info .complexity { color: var(--amber); }
+.btn-sort {
+  background: var(--amber-dim);
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  border-radius: var(--r-sm);
+  padding: 7px 16px;
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-sort:hover { background: rgba(245,158,11,0.25); }
+.btn-sort:disabled { opacity: 0.4; cursor: not-allowed; }
+.speed-label { font-size: 11px; color: var(--text-dim); font-family: var(--mono); }
+.speed-select {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 6px 10px;
+  font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+  cursor: pointer; outline: none;
+}
+.step-counter {
+  font-family: var(--mono); font-size: 11px; color: var(--lavender);
+}
+
+/* ─── Z-SCORE TABLE ───────────────────────────────────────── */
+.z-table-wrap { overflow-x: auto; }
+.z-table {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--mono); font-size: 11px;
+}
+.z-table th {
+  color: var(--text-dim); font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 12px; text-align: right;
+}
+.z-table th:first-child { text-align: left; }
+.z-table td {
+  padding: 6px 12px; text-align: right;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.z-table td:first-child { text-align: left; color: var(--teal); }
+.z-table tr:hover td { background: var(--surface2); }
+.z-outlier { color: var(--rose); }
+.z-normal  { color: var(--text-muted); }
+
+/* ─── FORMULA CARD ────────────────────────────────────────── */
+.formula-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+@media (max-width: 700px) { .formula-row { grid-template-columns: 1fr; } }
+.formula-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 14px 16px;
+}
+.formula-name {
+  font-family: var(--sans); font-size: 11px; font-weight: 600;
+  color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.formula-expr {
+  font-family: var(--mono); font-size: 13px; color: var(--lavender);
+  margin-bottom: 4px;
+}
+.formula-desc { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+
+/* ─── SORTED DISPLAY ──────────────────────────────────────── */
+.sorted-row {
+  display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;
+}
+.sorted-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-family: var(--mono); font-size: 12px; font-weight: 500;
+  color: var(--text);
+  padding: 4px 10px; border-radius: 6px;
+}
+.sorted-chip.median-chip { border-color: var(--amber); color: var(--amber); }
+.sorted-chip.q1-chip    { border-color: rgba(0,212,180,0.5); color: var(--teal); }
+.sorted-chip.q3-chip    { border-color: rgba(167,139,250,0.5); color: var(--lavender); }
+
+/* ─── BOX PLOT CUSTOM ─────────────────────────────────────── */
+.boxplot-container {
+  position: relative; height: 64px; margin: 16px 12px 28px;
+}
+.bp-whisker {
+  position: absolute; top: 28px; height: 2px;
+  background: var(--text-dim);
+}
+.bp-box {
+  position: absolute; top: 18px; height: 22px;
+  background: var(--teal-dim);
+  border: 1.5px solid var(--teal);
+  border-radius: 3px;
+}
+.bp-median {
+  position: absolute; top: 14px; width: 2px; height: 32px;
+  background: var(--amber);
+  border-radius: 1px;
+}
+.bp-cap {
+  position: absolute; top: 20px; width: 2px; height: 20px;
+  background: var(--text-dim);
+}
+.bp-label {
+  position: absolute; top: 44px;
+  transform: translateX(-50%);
+  font-family: var(--mono); font-size: 10px; color: var(--text-dim);
+  white-space: nowrap;
+}
+.bp-val {
+  position: absolute; bottom: 0;
+  transform: translateX(-50%);
+  font-family: var(--mono); font-size: 10px; color: var(--teal);
+  white-space: nowrap;
+}
+
+/* ─── OUTLIER BADGE ───────────────────────────────────────── */
+.outlier-badges {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.outlier-badge {
+  background: rgba(251,113,133,0.15);
+  border: 1px solid rgba(251,113,133,0.4);
+  color: var(--rose);
+  font-family: var(--mono); font-size: 12px;
+  padding: 3px 10px; border-radius: 20px;
+}
+.no-outliers {
+  font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+}
+
+/* ─── ANIMATIONS ──────────────────────────────────────────── */
+.fade-in { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px);} to {opacity:1; transform:translateY(0);} }
+
+/* ─── SCROLLBAR ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+</style>
+</head>
 <body>
 
-<h1>Stat Integra</h1>
-<h3>Integer Statistics Calculator</h3>
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">Σ</div>
+    <div>
+      <div class="logo-text">Stat<span>Integra</span></div>
+      <div class="header-meta">Mathematical Analytics Platform</div>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-dot"></div>
+    <span id="headerStatus">Ready — enter values to begin</span>
+  </div>
+</header>
 
-<div class="box">
-    <p>Enter positive integers one at a time.  
-       Enter a <strong>negative integer</strong> to finish.</p>
+<!-- MAIN LAYOUT -->
+<div class="layout">
 
-    <input type="number" id="integerInput" placeholder="Enter an integer">
-    <button onclick="addInteger()">Submit</button>
+  <!-- LEFT INPUT PANEL -->
+  <aside class="panel-left">
 
-    <div class="output" id="output"></div>
-</div>
-
-<div class="box">
-    <h2>Results</h2>
-    <div id="results">No data yet.</div>
-</div>
-
-    <div class="box">
-        <h2>Send Feedback</h2>
-        <form action="https://formspree.io/f/xdalgdgy" method="POST">
-            
-            <label for="name">Your Name:</label>
-            <input type="text" id="name" name="name" required>
-    
-            <label for="email">Your Email:</label>
-            <input type="email" id="email" name="email" required>
-    
-            <label for="message">Your Feedback:</label>
-            <textarea id="message" name="message" rows="5" required></textarea>
-    
-            <!-- Optional: Subject Line -->
-            <input type="hidden" name="_subject" value="New Feedback from Integer Statistics Calculator">
-    
-            <button type="submit">Send Feedback</button>
-        </form>
+    <!-- Input -->
+    <div class="input-card">
+      <div class="panel-label">Dataset Input</div>
+      <div class="input-row">
+        <input class="num-input" id="numInput" type="number" placeholder="+ integer" autocomplete="off">
+        <button class="btn-add" id="btnAdd" onclick="addInteger()">Add</button>
+      </div>
+      <div class="input-hint">
+        Enter positive integers one at a time. Press <strong>Analyze</strong> when done,<br>
+        or enter a <strong style="color:var(--rose)">negative number</strong> to trigger analysis automatically.
+      </div>
+      <button class="btn-finish" id="btnFinish" onclick="finishInput()" disabled>▶ Analyze Dataset</button>
+      <button class="btn-reset" onclick="resetAll()">↺ Reset / New Dataset</button>
     </div>
 
+    <!-- Queue -->
+    <div class="queue-card">
+      <div class="panel-label">Current Dataset</div>
+      <div class="queue-grid" id="queueGrid">
+        <span class="queue-empty">No values yet…</span>
+      </div>
+      <div class="queue-count" id="queueCount" style="display:none"></div>
+    </div>
+
+    <!-- Presets -->
+    <div class="presets-card">
+      <div class="panel-label">Sample Datasets</div>
+      <div class="preset-list">
+        <button class="preset-btn" onclick="loadPreset([4,8,15,16,23,42,8,15])">
+          <span>Lost Numbers</span><span class="preset-tag">n=8</span>
+        </button>
+        <button class="preset-btn" onclick="loadPreset([2,4,4,4,5,5,7,9])">
+          <span>Textbook Classic</span><span class="preset-tag">n=8 · σ=2</span>
+        </button>
+        <button class="preset-btn" onclick="loadPreset([1,100,2,99,3,98,50])">
+          <span>High Variance Set</span><span class="preset-tag">n=7</span>
+        </button>
+        <button class="preset-btn" onclick="loadPreset([10,20,30,40,50,60,70,80,90,100])">
+          <span>Linear Sequence</span><span class="preset-tag">n=10</span>
+        </button>
+        <button class="preset-btn" onclick="loadPreset([5,5,5,5,5,10,10,10,20])">
+          <span>Skewed Right</span><span class="preset-tag">n=9</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="feedback-card">
+      <div class="panel-label">Send Feedback</div>
+      <form id="feedbackForm" action="https://formspree.io/f/xdalgdgy" method="POST">
+        <label for="fbName">Name</label>
+        <input type="text" id="fbName" name="name" placeholder="Your name" required>
+        <label for="fbEmail">Email</label>
+        <input type="email" id="fbEmail" name="email" placeholder="you@example.com" required>
+        <label for="fbMsg">Feedback</label>
+        <textarea id="fbMsg" name="message" rows="3" placeholder="What do you think?" required></textarea>
+        <input type="hidden" name="_subject" value="StatIntegra Feedback">
+        <button class="btn-send" type="submit">Send Feedback →</button>
+      </form>
+    </div>
+
+  </aside>
+
+  <!-- RIGHT RESULTS PANEL -->
+  <main class="panel-right" id="mainPanel">
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-graphic">
+        <div class="empty-sigma">Σ</div>
+      </div>
+      <div class="empty-text">
+        <strong>Add values to your dataset</strong><br>
+        Statistics, visualizations, and insights<br>will appear here in real time.
+      </div>
+    </div>
+
+    <!-- Results (hidden until data) -->
+    <div class="results" id="resultsPanel" style="display:none"></div>
+
+  </main>
+</div>
+
 <script>
-    let integersList = [];
+/* ─── STATE ────────────────────────────────────────────────── */
+let data = [];
+let sortAnimating = false;
+let currentSortAlgo = 'bubble';
 
-    function addInteger() {
-        const input = document.getElementById("integerInput");
-        const value = parseInt(input.value);
-        const output = document.getElementById("output");
-        const results = document.getElementById("results");
+/* ─── INPUT ─────────────────────────────────────────────────── */
+document.getElementById('numInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addInteger();
+});
 
-        if (isNaN(value)) {
-            output.textContent = "Invalid input.";
-            return;
-        }
+function addInteger() {
+  const input = document.getElementById('numInput');
+  const val = parseInt(input.value, 10);
+  input.value = '';
+  input.focus();
 
-        if (value < 0) {
-            if (integersList.length === 0) {
-                results.textContent = "No integers were entered.";
-                return;
-            }
+  if (isNaN(val)) return flashInput();
+  if (val < 0) { finishInput(); return; }
 
-            const sorted = [...integersList].sort((a, b) => a - b);
-            const mean = computeMean(integersList).toFixed(2);
-            const stdDev = computeStandardDeviation(integersList).toFixed(2);
+  data.push(val);
+  updateQueue();
+  document.getElementById('btnFinish').disabled = false;
+  document.getElementById('headerStatus').textContent = `${data.length} value${data.length > 1 ? 's' : ''} in dataset`;
+}
 
-            let tableHTML = "<div class='table-container'><table><tr>";
-            for (let num of sorted) {
-                tableHTML += `<td>${num}</td>`;
-            }
-            tableHTML += "</tr></table></div>";
+function flashInput() {
+  const input = document.getElementById('numInput');
+  input.style.borderColor = 'var(--rose)';
+  setTimeout(() => { input.style.borderColor = ''; }, 600);
+}
 
-            results.innerHTML = `
-                <strong>Sorted List:</strong>
-                ${tableHTML}
+function updateQueue() {
+  const grid = document.getElementById('queueGrid');
+  const count = document.getElementById('queueCount');
+  if (data.length === 0) {
+    grid.innerHTML = '<span class="queue-empty">No values yet…</span>';
+    count.style.display = 'none';
+    return;
+  }
+  grid.innerHTML = data.map(n => `<span class="queue-tag">${n}</span>`).join('');
+  count.style.display = 'block';
+  const s = [...data].sort((a,b) => a-b);
+  count.textContent = `n=${data.length}  ·  range ${s[0]}–${s[s.length-1]}`;
+}
 
-                <div class="stat">
-                    <strong>Mean:</strong> ${mean}
-                    <div class="plot" id="boxplot"></div>
-                </div>
+function loadPreset(arr) {
+  data = [...arr];
+  updateQueue();
+  document.getElementById('btnFinish').disabled = false;
+  document.getElementById('headerStatus').textContent = `Sample dataset loaded (n=${data.length})`;
+  finishInput();
+}
 
-                <div class="stat">
-                    <strong>Standard Deviation:</strong> ${stdDev}
-                    <div style="margin-top: 20px;">
-                        <svg class="bell-curve" id="bellCurve"></svg>
-                    </div>
-                </div>            `
-                ;
-            drawBoxPlot(integersList);
-            drawBellCurve(mean, stdDev);            
-            output.textContent = "Input complete.";
-        } else {
-            integersList.push(value);
-            output.textContent = `Added: ${value}`;
-        }
+function resetAll() {
+  data = [];
+  sortAnimating = false;
+  updateQueue();
+  document.getElementById('btnFinish').disabled = true;
+  document.getElementById('emptyState').style.display = '';
+  document.getElementById('resultsPanel').style.display = 'none';
+  document.getElementById('headerStatus').textContent = 'Ready — enter values to begin';
+  document.getElementById('numInput').focus();
+}
 
-        input.value = "";
-        input.focus();
+/* ─── ANALYZE ───────────────────────────────────────────────── */
+function finishInput() {
+  if (data.length === 0) return;
+
+  const stats = computeStats(data);
+  renderResults(stats);
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultsPanel').style.display = '';
+  document.getElementById('headerStatus').textContent =
+    `Analysis complete — n=${data.length}  ·  μ=${stats.mean}  ·  σ=${stats.stdDev}`;
+}
+
+/* ─── STATISTICS ─────────────────────────────────────────────── */
+function computeStats(arr) {
+  const sorted = [...arr].sort((a,b) => a-b);
+  const n = arr.length;
+  const sum = arr.reduce((a,b) => a+b, 0);
+  const mean = sum / n;
+
+  // Median
+  const mid = Math.floor(n/2);
+  const median = n % 2 !== 0 ? sorted[mid] : (sorted[mid-1]+sorted[mid])/2;
+
+  // Mode
+  const freq = {};
+  arr.forEach(v => freq[v] = (freq[v]||0)+1);
+  const maxFreq = Math.max(...Object.values(freq));
+  const modes = Object.keys(freq).filter(k => freq[k]===maxFreq).map(Number);
+
+  // Variance / SD
+  const variance = arr.reduce((s,v) => s + (v-mean)**2, 0) / n;
+  const stdDev = Math.sqrt(variance);
+
+  // Quartiles
+  function quartile(s, q) {
+    const pos = (s.length-1)*q;
+    const b = Math.floor(pos);
+    const r = pos-b;
+    return s[b+1] !== undefined ? s[b]+r*(s[b+1]-s[b]) : s[b];
+  }
+  const q1 = quartile(sorted, 0.25);
+  const q3 = quartile(sorted, 0.75);
+  const iqr = q3-q1;
+
+  // Outliers (Tukey)
+  const lower = q1 - 1.5*iqr;
+  const upper = q3 + 1.5*iqr;
+  const outliers = sorted.filter(v => v < lower || v > upper);
+
+  // Z-scores
+  const zscores = arr.map(v => ({ value: v, z: stdDev > 0 ? (v-mean)/stdDev : 0 }));
+
+  // Skewness (Pearson 2nd)
+  const skewness = stdDev > 0 ? 3*(mean-median)/stdDev : 0;
+
+  // Frequency for histogram
+  const bins = buildHistogram(sorted, 8);
+
+  return {
+    sorted, n, sum, mean: mean.toFixed(2), meanRaw: mean,
+    median: typeof median === 'number' ? +median.toFixed(2) : median,
+    modes, maxFreq,
+    variance: variance.toFixed(4), stdDev: stdDev.toFixed(3), stdDevRaw: stdDev,
+    q1: +q1.toFixed(2), q3: +q3.toFixed(2), iqr: +iqr.toFixed(2),
+    min: sorted[0], max: sorted[n-1], range: sorted[n-1]-sorted[0],
+    outliers, lower: +lower.toFixed(2), upper: +upper.toFixed(2),
+    zscores: zscores.sort((a,b)=>a.value-b.value),
+    skewness: +skewness.toFixed(3), bins,
+    freq
+  };
+}
+
+function buildHistogram(sorted, numBins) {
+  if (sorted.length === 0) return [];
+  const min = sorted[0], max = sorted[sorted.length-1];
+  if (min === max) return [{ label: String(min), count: sorted.length, rangeStart: min }];
+  const binWidth = (max-min)/numBins;
+  const bins = Array.from({length: numBins}, (_,i) => ({
+    rangeStart: min + i*binWidth,
+    rangeEnd:   min + (i+1)*binWidth,
+    count: 0,
+    label: `${(min+i*binWidth).toFixed(0)}`
+  }));
+  sorted.forEach(v => {
+    let i = Math.floor((v-min)/binWidth);
+    if (i >= numBins) i = numBins-1;
+    bins[i].count++;
+  });
+  return bins.filter(b => true); // keep all (even 0 for shape)
+}
+
+/* ─── RENDER ─────────────────────────────────────────────────── */
+function renderResults(st) {
+  const panel = document.getElementById('resultsPanel');
+  panel.innerHTML = '';
+  panel.className = 'results fade-in';
+
+  panel.appendChild(makeSortedCard(st));
+  panel.appendChild(makeStatGrid(st));
+  panel.appendChild(makeHistogramCard(st));
+  panel.appendChild(makeBellCurveCard(st));
+  panel.appendChild(makeBoxPlotCard(st));
+  panel.appendChild(makeInsightsCard(st));
+  panel.appendChild(makeZScoreCard(st));
+  panel.appendChild(makeSortingCard(st));
+  panel.appendChild(makeFormulaCard(st));
+}
+
+/* ─── SORTED DISPLAY ─────────────────────────────────────────── */
+function makeSortedCard(st) {
+  const card = viz('Sorted Dataset', 'ascending order');
+  const q1idx = st.sorted.findIndex(v => v >= st.q1);
+  const q3idx = st.sorted.findIndex(v => v >= st.q3);
+
+  const row = el('div', 'sorted-row');
+  st.sorted.forEach((v, i) => {
+    const chip = el('span', 'sorted-chip');
+    chip.textContent = v;
+    if (v === st.median) chip.className += ' median-chip';
+    else if (i === q1idx) chip.className += ' q1-chip';
+    else if (i === q3idx) chip.className += ' q3-chip';
+    row.appendChild(chip);
+  });
+
+  const legend = el('div');
+  legend.style.cssText = 'display:flex;gap:12px;margin-top:10px;font-size:10px;font-family:var(--mono)';
+  legend.innerHTML = `
+    <span style="color:var(--amber)">■ Median</span>
+    <span style="color:var(--teal)">■ Q1</span>
+    <span style="color:var(--lavender)">■ Q3</span>`;
+  card.appendChild(row);
+  card.appendChild(legend);
+  return card;
+}
+
+/* ─── STAT GRID ──────────────────────────────────────────────── */
+function makeStatGrid(st) {
+  const wrap = document.createElement('div');
+  const grid = el('div', 'stat-grid');
+
+  const items = [
+    { label: 'Mean (μ)', val: st.mean, color: 'teal', sub: `Sum = ${st.sum}`, tip: 'Arithmetic average of all values' },
+    { label: 'Median', val: st.median, color: 'amber', sub: `Middle value`, tip: 'Middle value of sorted dataset' },
+    { label: 'Mode', val: st.modes.length <= 3 ? st.modes.join(', ') : `${st.modes.slice(0,3).join(', ')}…`, color: 'lav', sub: `Freq: ${st.maxFreq}`, tip: 'Most frequently occurring value(s)' },
+    { label: 'Std Dev (σ)', val: st.stdDev, color: 'teal', sub: `Var = ${st.variance}`, tip: '√ of average squared deviation from mean' },
+    { label: 'Range', val: st.range, color: 'rose', sub: `${st.min} – ${st.max}`, tip: 'Max minus min' },
+    { label: 'IQR', val: st.iqr, color: 'amber', sub: `Q1=${st.q1}  Q3=${st.q3}`, tip: 'Interquartile range: Q3 – Q1' },
+    { label: 'Skewness', val: st.skewness, color: 'lav', sub: skewLabel(st.skewness), tip: "Pearson's 2nd skewness coefficient" },
+    { label: 'Count (n)', val: st.n, color: 'rose', sub: `Σ = ${st.sum}`, tip: 'Total number of values' },
+  ];
+
+  items.forEach(it => {
+    const card = el('div', `stat-card ${it.color}`);
+    card.innerHTML = `
+      <div class="stat-label">${it.label}</div>
+      <div class="stat-value">${it.val}</div>
+      <div class="stat-sub">${it.sub}</div>
+      <div class="stat-tooltip">${it.tip}</div>`;
+    grid.appendChild(card);
+  });
+
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function skewLabel(s) {
+  if (Math.abs(s) < 0.5) return 'Approx. symmetric';
+  return s > 0 ? 'Right-skewed (+)' : 'Left-skewed (−)';
+}
+
+/* ─── HISTOGRAM ──────────────────────────────────────────────── */
+function makeHistogramCard(st) {
+  const card = viz('Frequency Distribution', 'histogram');
+  const maxCount = Math.max(...st.bins.map(b=>b.count), 1);
+
+  const wrap = el('div', 'histogram-wrap');
+  st.bins.forEach(b => {
+    const bw = el('div', 'hist-bar-wrap');
+    const bar = el('div', 'hist-bar');
+    bar.style.height = `${(b.count/maxCount)*100}%`;
+    bar.setAttribute('data-count', `${b.count} values`);
+    bar.title = `${b.label}–${(+b.rangeEnd).toFixed(0)}: ${b.count}`;
+    const lbl = el('span', 'hist-label');
+    lbl.textContent = b.label;
+    bw.appendChild(bar); bw.appendChild(lbl);
+    wrap.appendChild(bw);
+  });
+
+  card.appendChild(wrap);
+  return card;
+}
+
+/* ─── BELL CURVE ─────────────────────────────────────────────── */
+function makeBellCurveCard(st) {
+  const card = viz('Normal Distribution Curve', 'μ±3σ');
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('class','bell-svg');
+  svg.setAttribute('viewBox','0 0 600 130');
+
+  const μ = parseFloat(st.mean), σ = parseFloat(st.stdDev) || 1;
+  const W=600, H=130, pad=30;
+  const sx = x => pad + ((x+3)/6)*(W-2*pad);
+  const pts = [];
+  for (let x=-3; x<=3; x+=0.04) pts.push({x: sx(x), y: H-20 - Math.exp(-0.5*x*x)*(H-45)});
+
+  const area = `M ${pts[0].x},${H-20} ${pts.map(p=>`L ${p.x},${p.y}`).join(' ')} L ${pts[pts.length-1].x},${H-20} Z`;
+  const line = pts.map((p,i)=>`${i?'L':'M'} ${p.x},${p.y}`).join(' ');
+
+  const guides = [
+    {x:-2,label:'−2σ',col:'rgba(167,139,250,0.6)'},{x:-1,label:'−1σ',col:'rgba(0,212,180,0.6)'},
+    {x:0, label:'μ',  col:'rgba(245,158,11,0.9)'},
+    {x:1, label:'+1σ',col:'rgba(0,212,180,0.6)'},{x:2,label:'+2σ',col:'rgba(167,139,250,0.6)'}
+  ];
+
+  let gSvg = '';
+  guides.forEach(g => {
+    const xp = sx(g.x);
+    const val = g.x===0 ? μ.toFixed(2) : (μ+g.x*σ).toFixed(2);
+    gSvg += `
+      <line x1="${xp}" y1="16" x2="${xp}" y2="${H-22}" stroke="${g.col}" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="${xp}" y="12" text-anchor="middle" font-size="9" fill="${g.col}" font-family="'JetBrains Mono',monospace">${val}</text>
+      <text x="${xp}" y="${H-6}" text-anchor="middle" font-size="9" fill="${g.col}" font-family="'JetBrains Mono',monospace">${g.label}</text>`;
+  });
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="bellGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#00d4b4" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#00d4b4" stop-opacity="0.03"/>
+      </linearGradient>
+    </defs>
+    ${gSvg}
+    <path d="${area}" fill="url(#bellGrad)"/>
+    <path d="${line}" fill="none" stroke="#00d4b4" stroke-width="2"/>`;
+
+  card.appendChild(svg);
+  return card;
+}
+
+/* ─── BOX PLOT ───────────────────────────────────────────────── */
+function makeBoxPlotCard(st) {
+  const card = viz('Box Plot — Five-Number Summary', 'Tukey');
+  const min=st.min, max=st.max;
+  if (min===max) { card.appendChild(note('All values are equal — box plot not applicable.')); return card; }
+  const sc = v => ((v-min)/(max-min))*100;
+
+  const cont = el('div','boxplot-container');
+
+  const whisker = el('div','bp-whisker');
+  whisker.style.cssText = `left:${sc(min)}%;width:${sc(max)-sc(min)}%`;
+  cont.appendChild(whisker);
+
+  const box = el('div','bp-box');
+  box.style.cssText = `left:${sc(st.q1)}%;width:${sc(st.q3)-sc(st.q1)}%`;
+  cont.appendChild(box);
+
+  const med = el('div','bp-median');
+  med.style.left = `${sc(st.median)}%`;
+  cont.appendChild(med);
+
+  [[min,'Min',sc(min)],[st.q1,'Q1',sc(st.q1)],[st.median,'Med',sc(st.median)],[st.q3,'Q3',sc(st.q3)],[max,'Max',sc(max)]].forEach(([v,lbl,pct]) => {
+    const cap = el('div','bp-cap'); cap.style.left = `${pct}%`; cont.appendChild(cap);
+    const lb = el('div','bp-label'); lb.style.left=`${pct}%`; lb.textContent=lbl; cont.appendChild(lb);
+    const vl = el('div','bp-val'); vl.style.left=`${pct}%`; vl.textContent=v; cont.appendChild(vl);
+  });
+
+  card.appendChild(cont);
+
+  // Outliers
+  const ot = el('div','viz-title'); ot.textContent = 'Outliers (IQR method)';
+  card.appendChild(ot);
+  if (st.outliers.length === 0) {
+    const nb = el('div','no-outliers'); nb.textContent = '✓ No outliers detected'; card.appendChild(nb);
+  } else {
+    const ob = el('div','outlier-badges');
+    st.outliers.forEach(v => { const b=el('span','outlier-badge'); b.textContent=v; ob.appendChild(b); });
+    card.appendChild(ob);
+    const bnd = el('div',''); bnd.style.cssText='font-size:11px;color:var(--text-dim);font-family:var(--mono);margin-top:8px';
+    bnd.textContent=`Bounds: [${st.lower}, ${st.upper}]`;
+    card.appendChild(bnd);
+  }
+  return card;
+}
+
+/* ─── INSIGHTS ───────────────────────────────────────────────── */
+function makeInsightsCard(st) {
+  const card = viz('Statistical Insights');
+  const grid = el('div','insights-grid');
+
+  const sk = st.skewness;
+  const skDesc = Math.abs(sk)<0.5
+    ? 'roughly symmetric distribution' : sk>0 ? 'right-skewed distribution (tail pulls right)' : 'left-skewed distribution (tail pulls left)';
+  const cvPct = ((parseFloat(st.stdDev)/parseFloat(st.mean))*100).toFixed(1);
+
+  const insights = [
+    { icon:'📊', text: `The dataset has a <strong>mean of ${st.mean}</strong> and a <strong>median of ${st.median}</strong>. ${parseFloat(st.mean)>st.median?'Mean > median suggests potential right skew.':parseFloat(st.mean)<st.median?'Mean < median suggests potential left skew.':'Mean equals median — symmetric distribution.'}` },
+    { icon:'📏', text: `Standard deviation is <strong>${st.stdDev}</strong>, with a coefficient of variation of <strong>${cvPct}%</strong>. ${cvPct>50?'High variability relative to the mean.':cvPct<15?'Low variability — data points are tightly clustered.':'Moderate spread around the mean.'}` },
+    { icon:'🔷', text: `The IQR is <strong>${st.iqr}</strong> (Q1=${st.q1}, Q3=${st.q3}), indicating the middle 50% of values fall in this range. ${st.iqr===0?'No spread in the interquartile range — majority are equal.':''}` },
+    { icon:'↗', text: `Skewness coefficient of <strong>${st.skewness}</strong> indicates a <strong>${skDesc}</strong>.` },
+    { icon:'⚠️', text: st.outliers.length>0 ? `<strong>${st.outliers.length} outlier${st.outliers.length>1?'s':''}</strong> detected: ${st.outliers.join(', ')}. These values fall beyond the Tukey fences.` : `<strong>No outliers detected</strong>. All values fall within the expected Tukey bounds of [${st.lower}, ${st.upper}].` },
+    { icon:'🎯', text: `Mode${st.modes.length>1?'s are':'is'} <strong>${st.modes.join(', ')}</strong> (appears ${st.maxFreq} time${st.maxFreq>1?'s':''}). ${st.modes.length===st.n?'All values unique — no meaningful mode.':st.modes.length>2?'Multiple modes suggest a multimodal distribution.':''}` },
+  ];
+
+  insights.forEach(it => {
+    const item = el('div','insight-item');
+    item.innerHTML = `<span class="i-icon">${it.icon}</span>${it.text}`;
+    grid.appendChild(item);
+  });
+  card.appendChild(grid);
+  return card;
+}
+
+/* ─── Z-SCORE TABLE ──────────────────────────────────────────── */
+function makeZScoreCard(st) {
+  if (st.n > 20) {
+    const card = viz('Z-Score Analysis', 'standardized');
+    card.appendChild(note('Dataset has more than 20 values — showing outlier z-scores only.'));
+    const outlierZ = st.zscores.filter(z => Math.abs(z.z)>2);
+    if (outlierZ.length===0) { card.appendChild(note('No values with |z| > 2.')); return card; }
+    renderZTable(card, outlierZ);
+    return card;
+  }
+
+  const card = viz('Z-Score Table', 'standardized values');
+  renderZTable(card, st.zscores);
+  return card;
+}
+
+function renderZTable(card, rows) {
+  const wrap = el('div','z-table-wrap');
+  const tbl = el('table','z-table');
+  tbl.innerHTML = `<thead><tr>
+    <th>Value</th><th>Deviation from μ</th><th>Z-Score</th><th>Note</th>
+  </tr></thead>`;
+  const tbody = document.createElement('tbody');
+  rows.forEach(({value, z}) => {
+    const tr = document.createElement('tr');
+    const isOut = Math.abs(z)>2;
+    tr.innerHTML = `
+      <td>${value}</td>
+      <td class="${isOut?'z-outlier':'z-normal'}">${(value - parseFloat(z===0?value:value)).toFixed(2)}</td>
+      <td class="${isOut?'z-outlier':'z-normal'}">${z.toFixed(3)}</td>
+      <td style="font-size:10px;color:var(--text-dim)">${Math.abs(z)>2?'⚠ Outlier':Math.abs(z)>1?'Notable':''}</td>`;
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  wrap.appendChild(tbl);
+  card.appendChild(wrap);
+}
+
+/* ─── SORTING VIZ ────────────────────────────────────────────── */
+function makeSortingCard(st) {
+  const card = viz('Sorting Algorithm Visualizer', 'animated');
+
+  const tabs = el('div','sort-tabs');
+  ['bubble','selection','insertion'].forEach(algo => {
+    const t = el('button',`sort-tab${algo===currentSortAlgo?' active':''}`);
+    t.textContent = {bubble:'Bubble Sort',selection:'Selection Sort',insertion:'Insertion Sort'}[algo];
+    t.onclick = () => {
+      document.querySelectorAll('.sort-tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      currentSortAlgo = algo;
+      resetSortVis(st);
+      updateSortInfo();
+    };
+    tabs.appendChild(t);
+  });
+  card.appendChild(tabs);
+
+  const visDiv = el('div','sort-vis'); visDiv.id='sortVis'; card.appendChild(visDiv);
+
+  const controls = el('div','sort-controls');
+  const btnRun = el('button','btn-sort'); btnRun.id='btnRunSort'; btnRun.textContent='▶ Run Sort';
+  btnRun.onclick = () => runSort(st);
+  const btnReset2 = el('button','btn-sort'); btnReset2.style.background='var(--lav-dim)';
+  btnReset2.style.borderColor='var(--lavender)'; btnReset2.style.color='var(--lavender)';
+  btnReset2.textContent='↺ Shuffle';
+  btnReset2.onclick = () => resetSortVis(st);
+  const spLbl = el('span','speed-label'); spLbl.textContent='Speed:';
+  const sel = el('select','speed-select'); sel.id='sortSpeed';
+  ['Fast','Medium','Slow'].forEach((s,i) => {
+    const o = document.createElement('option'); o.value=[60,150,350][i]; o.textContent=s;
+    if(i===0) o.selected=true; sel.appendChild(o);
+  });
+  const ctr = el('span','step-counter'); ctr.id='stepCounter'; ctr.textContent='';
+  controls.append(btnRun, btnReset2, spLbl, sel, ctr);
+  card.appendChild(controls);
+
+  const info = el('div','sort-info'); info.id='sortInfo'; card.appendChild(info);
+
+  setTimeout(()=>{ resetSortVis(st); updateSortInfo(); }, 0);
+  return card;
+}
+
+let sortData = [];
+function resetSortVis(st) {
+  sortData = [...st.sorted].sort(()=>Math.random()-0.5);
+  renderSortBars(sortData, [], [], []);
+  document.getElementById('stepCounter').textContent = '';
+  const btn = document.getElementById('btnRunSort');
+  if(btn) { btn.disabled=false; btn.textContent='▶ Run Sort'; }
+}
+function updateSortInfo() {
+  const info = document.getElementById('sortInfo');
+  if(!info) return;
+  const map = {
+    bubble:    {best:'O(n)',   avg:'O(n²)',   worst:'O(n²)',   space:'O(1)',  note:'Compares adjacent pairs; stable sort.'},
+    selection: {best:'O(n²)', avg:'O(n²)',   worst:'O(n²)',   space:'O(1)',  note:'Selects minimum and swaps; not stable.'},
+    insertion: {best:'O(n)',   avg:'O(n²)',   worst:'O(n²)',   space:'O(1)',  note:'Builds sorted array one element at a time; stable sort.'},
+  };
+  const c = map[currentSortAlgo];
+  info.innerHTML = `<span class="complexity">Best: ${c.best} &nbsp; Average: ${c.avg} &nbsp; Worst: ${c.worst} &nbsp; Space: ${c.space}</span> — ${c.note}`;
+}
+
+function renderSortBars(arr, comparing, swapping, sorted) {
+  const vis = document.getElementById('sortVis');
+  if(!vis) return;
+  const max = Math.max(...arr);
+  vis.innerHTML = '';
+  arr.forEach((v,i)=>{
+    const b = el('div','sort-bar');
+    if(sorted.includes(i))     b.classList.add('sorted');
+    else if(swapping.includes(i)) b.classList.add('swapping');
+    else if(comparing.includes(i)) b.classList.add('comparing');
+    b.style.height = `${(v/max)*100}%`;
+    b.title = v;
+    vis.appendChild(b);
+  });
+}
+
+async function runSort(st) {
+  if(sortAnimating) return;
+  sortAnimating = true;
+  const btn = document.getElementById('btnRunSort');
+  if(btn) btn.disabled = true;
+
+  const arr = [...sortData];
+  const delay = ()=>new Promise(r=>setTimeout(r,parseInt(document.getElementById('sortSpeed')?.value||60)));
+  let steps=0;
+
+  const setStep = s => { steps=s; const ctr=document.getElementById('stepCounter'); if(ctr) ctr.textContent=`steps: ${steps}`; };
+
+  if(currentSortAlgo==='bubble') {
+    const n=arr.length;
+    for(let i=0;i<n-1;i++){
+      for(let j=0;j<n-i-1;j++){
+        setStep(steps+1);
+        renderSortBars(arr,[j,j+1],[],[]);
+        await delay();
+        if(arr[j]>arr[j+1]){[arr[j],arr[j+1]]=[arr[j+1],arr[j]];
+          renderSortBars(arr,[],[j,j+1],[]);
+          await delay();}
+      }
     }
-
-    function computeMean(list) {
-        const sum = list.reduce((a, b) => a + b, 0);
-        return sum / list.length;
+  } else if(currentSortAlgo==='selection'){
+    const n=arr.length;
+    for(let i=0;i<n-1;i++){
+      let minIdx=i;
+      for(let j=i+1;j<n;j++){
+        setStep(steps+1);
+        renderSortBars(arr,[minIdx,j],[],Array.from({length:i},(_,k)=>k));
+        await delay();
+        if(arr[j]<arr[minIdx]) minIdx=j;
+      }
+      if(minIdx!==i){[arr[i],arr[minIdx]]=[arr[minIdx],arr[i]];
+        renderSortBars(arr,[],[i,minIdx],Array.from({length:i},(_,k)=>k));
+        await delay();}
     }
-
-    function computeVariance(list) {
-        const mean = computeMean(list);
-        let total = 0;
-
-        for (let i of list) {
-            total += (i - mean) ** 2;
-        }
-
-        return total / list.length;
+  } else { // insertion
+    const n=arr.length;
+    for(let i=1;i<n;i++){
+      let key=arr[i], j=i-1;
+      while(j>=0&&arr[j]>key){
+        setStep(steps+1);
+        renderSortBars(arr,[j,j+1],[],[]);
+        await delay();
+        arr[j+1]=arr[j]; j--;
+        renderSortBars(arr,[],[j+1,j+2],[]);
+        await delay();
+      }
+      arr[j+1]=key;
     }
+  }
 
-    function computeStandardDeviation(list) {
-        return Math.sqrt(computeVariance(list));
-    }
+  renderSortBars(arr,[],[],arr.map((_,i)=>i));
+  sortData = arr;
+  sortAnimating = false;
+  if(btn){ btn.disabled=false; btn.textContent='▶ Run Again'; }
+}
 
-    function drawBoxPlot(data) {
-        const container = document.getElementById("boxplot");
-        container.innerHTML = "";
+/* ─── FORMULAS ───────────────────────────────────────────────── */
+function makeFormulaCard(st) {
+  const card = viz('Formula Reference');
+  const row = el('div','formula-row');
+  const formulas = [
+    { name:'Mean', expr:'μ = Σxᵢ / n', desc:`Sum of all values divided by count. Here: ${st.sum}/${st.n} = ${st.mean}` },
+    { name:'Variance', expr:'σ² = Σ(xᵢ−μ)² / n', desc:`Average squared deviation. Result: ${st.variance}` },
+    { name:'Std Dev', expr:'σ = √(σ²)', desc:`Square root of variance. Result: ${st.stdDev}` },
+    { name:'Z-Score', expr:'z = (x − μ) / σ', desc:'Standardizes values to units of standard deviation.' },
+    { name:'Quartile', expr:'Qₚ = x[⌊(n-1)p⌋ + frac]', desc:'Linear interpolation method. IQR = Q3 − Q1.' },
+    { name:'Skewness', expr:"sk = 3(μ − med) / σ", desc:`Pearson 2nd. Result: ${st.skewness}. Near 0 = symmetric.` },
+  ];
+  formulas.forEach(f => {
+    const fc = el('div','formula-card');
+    fc.innerHTML = `<div class="formula-name">${f.name}</div><div class="formula-expr">${f.expr}</div><div class="formula-desc">${f.desc}</div>`;
+    row.appendChild(fc);
+  });
+  card.appendChild(row);
+  return card;
+}
 
-        const sorted = [...data].sort((a, b) => a - b);
-        const min = sorted[0];
-        const max = sorted[sorted.length - 1];
-        function quartile(arr, q) {
-            const pos = (arr.length - 1) * q;
-            const base = Math.floor(pos);
-            const rest = pos - base;
+/* ─── HELPERS ────────────────────────────────────────────────── */
+function el(tag, cls='') {
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  return e;
+}
+function viz(title, badge='') {
+  const card = el('div','viz-card');
+  const t = el('div','viz-title');
+  t.textContent = title;
+  if(badge){ const b=el('span','viz-badge'); b.textContent=badge; t.appendChild(b); }
+  card.appendChild(t);
+  return card;
+}
+function note(txt) {
+  const d=el('div'); d.style.cssText='font-size:12px;color:var(--text-dim);font-family:var(--mono);padding:8px 0';
+  d.textContent=txt; return d;
+}
 
-            if (arr[base + 1] !== undefined) {
-                return arr[base] + rest * (arr[base + 1] - arr[base]);
-            } else {
-                return arr[base];
-            }
-        }
-
-        const q1 = quartile(sorted, 0.25);
-        const median = quartile(sorted, 0.5);
-        const q3 = quartile(sorted, 0.75);
-        const scale = val => ((val - min) / (max - min)) * 100;
-
-        container.innerHTML = `
-            <div class="boxplot">
-                <div class="boxplot-line"></div>
-
-                <div class="boxplot-box"
-                    style="left:${scale(q1)}%; width:${scale(q3) - scale(q1)}%;">
-                </div>
-
-                ${marker(min, "Min")}
-                ${marker(q1, "Q1")}
-                ${marker(median, "Median")}
-                ${marker(q3, "Q3")}
-                ${marker(max, "Max")}
-            </div>
-        `;
-
-        function marker(value, label) {
-            return `
-                <div class="boxplot-marker" style="left:${scale(value)}%;"></div>
-                <div class="boxplot-label" style="left:${scale(value)}%;">
-                    ${label}<br>${parseFloat(value).toFixed(1)}
-                </div>
-            `;
-        }
-    }
-
-    function drawBellCurve(mean, stdDev) {
-        const svg = document.getElementById("bellCurve");
-        svg.innerHTML = "";
-
-        const width = svg.clientWidth;
-        const height = svg.clientHeight;
-
-        const μ = parseFloat(mean);
-        const σ = parseFloat(stdDev);
-
-        const scaleX = x => ((x + 3) / 6) * width;
-        const points = [];
-
-        // Normal curve
-        for (let x = -3; x <= 3; x += 0.05) {
-            const y = Math.exp(-0.5 * x * x);
-            points.push({
-                x: scaleX(x),
-                y: height - y * height * 0.85
-            });
-        }
-
-        const linePath = points
-            .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x},${p.y}`)
-            .join(" ");
-
-        const areaPath = `
-            M ${points[0].x},${height}
-            ${points.map(p => `L ${p.x},${p.y}`).join(" ")}
-            L ${points[points.length - 1].x},${height}
-            Z
-        `;
-
-        // σ guide lines with numeric labels
-        const guides = [
-            { x: -2, label: "−2σ", value: (μ - 2 * σ).toFixed(2) },
-            { x: -1, label: "−1σ", value: (μ - σ).toFixed(2) },
-            { x:  0, label: "μ",   value: μ.toFixed(2) },
-            { x:  1, label: "+1σ", value: (μ + σ).toFixed(2) },
-            { x:  2, label: "+2σ", value: (μ + 2 * σ).toFixed(2) }
-        ];
-
-        const guideLines = guides.map(g => {
-            const xPos = scaleX(g.x);
-            return `
-                <line x1="${xPos}" y1="15" x2="${xPos}" y2="${height - 20}"
-                    stroke="#444" stroke-dasharray="4,4" />
-                <text x="${xPos}" y="12"
-                    text-anchor="middle" font-size="11">
-                    ${g.value}
-                </text>
-                <text x="${xPos}" y="${height - 5}"
-                    text-anchor="middle" font-size="11">
-                    ${g.label}
-                </text>
-            `;
-        }).join("");
-
-        svg.innerHTML = `
-            <path d="${areaPath}" fill="rgba(0,119,204,0.25)"></path>
-            <path d="${linePath}" fill="none" stroke="#0077cc" stroke-width="2"></path>
-
-            ${guideLines}
-
-        `;
-    }
-
-    const form = document.querySelector("form");
-    form.addEventListener("submit", async function(event) {
-        event.preventDefault();
-        const data = new FormData(form);
-
-        const response = await fetch(form.action, {
-            method: form.method,
-            body: data,
-            headers: { 'Accept': 'application/json' }
-        });
-
-        if (response.ok) {
-            form.innerHTML = "<p><strong>Thank you! Your feedback has been sent.</strong></p>";
-        } else {
-            alert("Oops! Something went wrong.");
-        }
-    });    
+/* ─── FEEDBACK FORM ──────────────────────────────────────────── */
+document.getElementById('feedbackForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const data = new FormData(this);
+  try {
+    const r = await fetch(this.action,{method:'POST',body:data,headers:{'Accept':'application/json'}});
+    this.innerHTML = r.ok
+      ? '<p style="color:var(--teal);font-family:var(--mono);font-size:12px;padding:8px 0">✓ Feedback sent — thank you!</p>'
+      : '<p style="color:var(--rose);font-size:12px">Something went wrong. Please try again.</p>';
+  } catch { this.innerHTML='<p style="color:var(--rose);font-size:12px">Network error.</p>'; }
+});
 </script>
-
 </body>
 </html>
